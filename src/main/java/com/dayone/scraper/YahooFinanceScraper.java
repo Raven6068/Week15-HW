@@ -58,14 +58,12 @@ public class YahooFinanceScraper implements Scraper {
                     throw new RuntimeException("Unexpected Month enum value -> " + splits[0]);
                 }
 
-                Dividend d = null;  // not implemented yet
-                dividends.add(d);
-
+                dividends.add(new Dividend(LocalDateTime.of(year, month, day, 0, 0), dividend));
             }
             scrapResult.setDividends(dividends);
 
         } catch (IOException e) {
-            // TODO error handling
+            // 스크래핑 실패 시 빈 리스트 반환 혹은 로그 처리
             e.printStackTrace();
         }
 
@@ -79,7 +77,15 @@ public class YahooFinanceScraper implements Scraper {
         try {
             Document document = Jsoup.connect(url).get();
             Element titleEle = document.getElementsByTag("h1").get(0);
-            String title = titleEle.text().split(" - ")[1].trim();
+            String titleText = titleEle.text();
+            String title;
+
+            // "ABC Corp - (ABC)" 형태에서 깔끔하게 이름만 추출 시도
+            if (titleText.contains(" - ")) {
+                title = titleText.split(" - ")[1].trim();
+            } else {
+                title = titleText.trim(); // 구분자가 없으면 전체 텍스트 사용
+            }
 
             return new Company(ticker, title);
         } catch (IOException e) {
