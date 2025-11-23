@@ -25,11 +25,9 @@ public class ScraperScheduler {
 
     private final CompanyRepository companyRepository;
     private final DividendRepository dividendRepository;
-
     private final Scraper yahooFinanceScraper;
 
-    // 일정 주기마다 수행
-    @CacheEvict(value = CacheKey.KEY_FINANCE, allEntries = true) // 스케줄러 동작 시 캐시 전체 비움
+    @CacheEvict(value = CacheKey.KEY_FINANCE, allEntries = true)
     @Scheduled(cron = "${scheduler.scrap.yahoo}")
     public void yahooFinanceScheduling() {
         log.info("scraping scheduler is started");
@@ -42,7 +40,7 @@ public class ScraperScheduler {
             ScrapedResult scrapedResult = this.yahooFinanceScraper.scrap(
                     new Company(company.getTicker(), company.getName()));
 
-            // 스크래핑 결과 중 DB에 없는 것만 저장
+            // 중복 데이터 검사 후 저장
             scrapedResult.getDividends().stream()
                     .map(e -> new DividendEntity(company.getId(), e))
                     .forEach(e -> {
@@ -53,9 +51,9 @@ public class ScraperScheduler {
                         }
                     });
 
-            // 연속 요청 방지 (Yahoo 측 차단 방지)
+            // 연속 요청 방지 (3초 대기)
             try {
-                Thread.sleep(3000); // 3초 대기
+                Thread.sleep(3000);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }

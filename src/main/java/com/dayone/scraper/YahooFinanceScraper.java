@@ -37,7 +37,7 @@ public class YahooFinanceScraper implements Scraper {
             Document document = connection.get();
 
             Elements parsingDivs = document.getElementsByAttributeValue("data-test", "historical-prices");
-            Element tableEle = parsingDivs.get(0);  // table 전체
+            Element tableEle = parsingDivs.get(0);
 
             Element tbody = tableEle.children().get(1);
 
@@ -63,7 +63,6 @@ public class YahooFinanceScraper implements Scraper {
             scrapResult.setDividends(dividends);
 
         } catch (IOException e) {
-            // 스크래핑 실패 시 빈 리스트 반환 혹은 로그 처리
             e.printStackTrace();
         }
 
@@ -80,11 +79,11 @@ public class YahooFinanceScraper implements Scraper {
             String titleText = titleEle.text();
             String title;
 
-            // "ABC Corp - (ABC)" 형태에서 깔끔하게 이름만 추출 시도
+            // 타이틀이 "Realty Income Corporation (O)" 처럼 괄호나 하이픈으로 구분되지 않는 경우 전체를 사용
             if (titleText.contains(" - ")) {
                 title = titleText.split(" - ")[1].trim();
             } else {
-                title = titleText.trim(); // 구분자가 없으면 전체 텍스트 사용
+                title = titleText.trim();
             }
 
             return new Company(ticker, title);
